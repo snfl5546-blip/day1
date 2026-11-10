@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>배열 한 줄씩 실행</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Malgun Gothic", sans-serif; background: #f1f5f9; color: #1e293b; padding: 16px; }
+    h1 { font-size: 1.3rem; margin-bottom: 4px; }
+    .sub { color: #64748b; font-size: .9rem; margin-bottom: 14px; }
+    .wrap { max-width: 1000px; margin: 0 auto; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+    .panel { background: #fff; border-radius: 10px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+    .panel h2 { font-size: .95rem; color: #475569; margin-bottom: 8px; }
+
+    /* 코드 */
+    .code { font-family: Consolas, monospace; font-size: .92rem; background: #0f172a; color: #e2e8f0; border-radius: 8px; padding: 8px 0; overflow-x: auto; }
+    .ln { display: flex; padding: 3px 12px; white-space: pre; border-left: 4px solid transparent; }
+    .ln .no { width: 24px; color: #64748b; flex-shrink: 0; }
+    .ln.on { background: #1d4ed8; border-left-color: #facc15; color: #fff; }
+
+    /* 설명 */
+    #msg { background: #fef9c3; border: 1px solid #fde047; border-radius: 8px; padding: 10px 12px; margin: 12px 0; min-height: 60px; line-height: 1.6; }
+
+    /* 변수 */
+    .vars { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .var { flex: 1; min-width: 90px; background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 8px; text-align: center; padding: 8px 4px; transition: background .3s, border-color .3s; }
+    .var .name { font-family: Consolas, monospace; font-size: .85rem; color: #64748b; }
+    .var .val { font-size: 1.5rem; font-weight: bold; font-family: Consolas, monospace; }
+    .var.flash { background: #bbf7d0; border-color: #16a34a; }
+
+    /* 배열 */
+    #arr { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; }
+    .cell { text-align: center; font-size: .72rem; padding: 4px 0; border-radius: 4px; background: #e2e8f0; color: #94a3b8; font-family: Consolas, monospace; transition: background .2s; }
+    .cell.show { color: #1e293b; background: #dbeafe; }
+    .cell.done { background: #bbf7d0; }
+    .cell.cur { background: #f97316; color: #fff; transform: scale(1.2); font-weight: bold; }
+
+    /* 콘솔 */
+    #out { font-family: Consolas, monospace; background: #0f172a; color: #4ade80; border-radius: 8px; padding: 10px 12px; min-height: 60px; }
+
+    /* 컨트롤 */
+    .ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px; }
+    button { font: inherit; padding: 9px 14px; border: 0; border-radius: 8px; background: #2563eb; color: #fff; cursor: pointer; }
+    button:hover { background: #1d4ed8; }
+    button.sec { background: #64748b; }
+    button:disabled { background: #cbd5e1; cursor: not-allowed; }
+    #pos { font-size: .9rem; color: #475569; }
+    label { font-size: .85rem; color: #475569; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🐢 배열 코드, 한 줄씩 실행해 보기</h1>
+  <p class="sub">[다음 ▶] 버튼을 누를 때마다 코드가 한 줄씩 실행됩니다. 파란 줄이 지금 실행 중인 줄이에요.</p>
+
+  <div class="grid">
+    <div class="panel">
+      <h2>📜 코드</h2>
+      <div class="code" id="code"></div>
+      <div id="msg"></div>
+    </div>
+
+    <div class="panel">
+      <h2>📦 변수 (메모리)</h2>
+      <div class="vars">
+        <div class="var" id="vSum"><div class="name">sum</div><div class="val">-</div></div>
+        <div class="var" id="vCnt"><div class="name">cnt</div><div class="val">-</div></div>
+        <div class="var" id="vI"><div class="name">i</div><div class="val">-</div></div>
+      </div>
+      <h2>🔢 배열 data (100개) — 주황: 지금 꺼낸 칸, 초록: 이미 더한 칸</h2>
+      <div id="arr"></div>
+      <h2 style="margin-top:12px">🖥️ 출력 (console.log)</h2>
+      <div id="out"></div>
+    </div>
+  </div>
+
+  <div class="ctrl">
+    <button id="prev" class="sec">◀ 이전</button>
+    <button id="next">다음 ▶</button>
+    <button id="play">▶▶ 자동 재생</button>
+    <button id="skip" class="sec">⏩ 반복문 끝으로</button>
+    <button id="reset" class="sec">↺ 처음부터</button>
+    <label>속도 <input type="range" id="speed" min="1" max="10" value="4"></label>
+    <span id="pos"></span>
+  </div>
+</div>
+
+<script>
+  // ===== 데이터 (원본 코드와 동일) =====
+  const data = [];
+  for (let n = 1; n <= 100; n++) data.push(n);
+
+  // ===== 화면에 보여줄 코드 =====
+  const codeLines = [
+    'const data = [1, 2, 3, ... , 100]',
+    'console.log(data[0])',
+    'let sum = 10',
+    'sum = sum + 7',
+    'console.log(sum)',
+    'let cnt = 8',
+    'cnt = cnt + 1',
+    'for (const i of data) {',
+    '    sum += i',
+    '}',
+    'console.log(sum)',
+  ];
+
+  // ===== 실행 단계를 미리 계산 =====
+  const steps = [];
+  const st = { sum: null, cnt: null, i: null, idx: -1, done: 0, arr: false, out: [] };
+  function push(line, msg, flash) {
+    steps.push({ line, msg, flash: flash || '', sum: st.sum, cnt: st.cnt, i: st.i,
+                 idx: st.idx, done: st.done, arr: st.arr, out: st.out.slice() });
+  }
+
+  st.arr = true;
+  push(0, '배열 <b>data</b>를 만듭니다. 1부터 100까지 숫자 100개가 한 칸씩 들어갑니다. (오른쪽 파란 칸들)');
+  st.idx = 0;
+  push(1, '<b>data[0]</b> → 배열의 <b>첫 번째</b> 칸(번호는 0부터 시작!)을 읽습니다. 값은 1 입니다.');
+  st.idx = -1; st.out.push('1');
+  push(1, '<b>console.log</b>가 그 값 <b>1</b>을 출력창에 보여줍니다.');
+  st.sum = 10;
+  push(2, '변수 <b>sum</b>을 만들고 <b>10</b>을 넣습니다.', 'sum');
+  st.sum = 17;
+  push(3, 'sum = <b>sum + 7</b> → 10 + 7 = 17. 계산한 결과를 다시 sum에 넣습니다.', 'sum');
+  st.out.push('17');
+  push(4, 'sum의 값 <b>17</b>을 출력합니다.');
+  st.cnt = 8;
+  push(5, '변수 <b>cnt</b>를 만들고 <b>8</b>을 넣습니다.', 'cnt');
+  st.cnt = 9;
+  push(6, 'cnt = <b>cnt + 1</b> → 8 + 1 = 9. (줄여서 cnt += 1, cnt++ 라고도 씁니다.)', 'cnt');
+
+  for (let k = 0; k < data.length; k++) {
+    st.idx = k; st.i = data[k];
+    push(7, `반복 <b>${k + 1}번째</b>: 배열에서 하나 꺼내 변수 <b>i</b>에 저장합니다. 지금 i = <b>${data[k]}</b>`, 'i');
+    const before = st.sum;
+    st.sum += data[k];
+    st.done = k + 1;
+    push(8, `sum += i → <b>${before} + ${data[k]} = ${st.sum}</b>. 꺼낸 값을 sum에 계속 <b>누적</b>합니다.`, 'sum');
+  }
+  st.idx = -1; st.i = null;
+  push(9, '배열에서 더 꺼낼 데이터가 없습니다. 반복문(for)을 <b>빠져나옵니다</b>.');
+  st.out.push(String(st.sum));
+  push(10, `누적이 끝난 최종 sum <b>${st.sum}</b>을 출력합니다. (17 + 1~100의 합 5050 = ${st.sum})`);
+
+  const LOOP_END = steps.findIndex(s => s.line === 9);
+
+  // ===== 화면 만들기 =====
+  const $ = id => document.getElementById(id);
+  $('code').innerHTML = codeLines.map((t, n) =>
+    `<div class="ln" data-n="${n}"><span class="no">${n + 1}</span>${t.replace(/</g, '&lt;')}</div>`).join('');
+  $('arr').innerHTML = data.map(v => `<div class="cell">${v}</div>`).join('');
+  const cells = document.querySelectorAll('.cell');
+  const lns = document.querySelectorAll('.ln');
+
+  let pos = -1; // -1: 시작 전
+  let timer = null;
+
+  function setVar(id, v, flash) {
+    const el = $(id);
+    el.querySelector('.val').textContent = v === null ? '-' : v;
+    el.classList.toggle('flash', flash);
+  }
+
+  function render() {
+    const s = pos < 0 ? { line: -1, msg: '아직 시작 전입니다. <b>다음 ▶</b> 버튼을 눌러 보세요!', flash: '',
+      sum: null, cnt: null, i: null, idx: -1, done: 0, arr: false, out: [] } : steps[pos];
+    lns.forEach(el => el.classList.toggle('on', +el.dataset.n === s.line));
+    $('msg').innerHTML = s.msg;
+    setVar('vSum', s.sum, s.flash === 'sum');
+    setVar('vCnt', s.cnt, s.flash === 'cnt');
+    setVar('vI', s.i, s.flash === 'i');
+    cells.forEach((c, k) => {
+      c.className = 'cell' + (s.arr ? ' show' : '') + (k < s.done ? ' done' : '') + (k === s.idx ? ' cur' : '');
+    });
+    $('out').innerHTML = s.out.length ? s.out.map(t => '> ' + t).join('<br>') : '&nbsp;';
+    $('pos').textContent = `${pos + 1} / ${steps.length} 단계`;
+    $('prev').disabled = pos < 0;
+    $('next').disabled = pos >= steps.length - 1;
+    $('skip').disabled = pos >= LOOP_END;
+    if (pos >= steps.length - 1) stop();
+  }
+
+  function go(n) { pos = Math.max(-1, Math.min(steps.length - 1, n)); render(); }
+  function stop() { clearInterval(timer); timer = null; $('play').textContent = '▶▶ 자동 재생'; }
+  function play() {
+    if (timer) return stop();
+    if (pos >= steps.length - 1) pos = -1;
+    $('play').textContent = '⏸ 일시정지';
+    const delay = 1100 - $('speed').value * 100;
+    timer = setInterval(() => go(pos + 1), delay);
+    go(pos + 1);
+  }
+
+  $('next').onclick = () => { stop(); go(pos + 1); };
+  $('prev').onclick = () => { stop(); go(pos - 1); };
+  $('reset').onclick = () => { stop(); go(-1); };
+  $('skip').onclick = () => { stop(); go(LOOP_END); };
+  $('play').onclick = play;
+  $('speed').oninput = () => { if (timer) { stop(); play(); } };
+
+  render();
+</script>
+</body>
+</html>

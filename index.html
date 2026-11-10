@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>마라도 여행 가이드</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      color: #222;
+      background: #f4f8fb;
+      line-height: 1.6;
+    }
+
+    /* 헤더 / 메뉴 */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #0b7285;
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+    }
+    .bar {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 16px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo { font-size: 1.2rem; font-weight: bold; color: #fff; text-decoration: none; }
+    nav ul { list-style: none; display: flex; gap: 4px; }
+    nav a {
+      display: block;
+      padding: 8px 14px;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+    }
+    nav a:hover { background: rgba(255, 255, 255, .2); }
+    nav a.active { background: #fff; color: #0b7285; font-weight: bold; }
+
+    /* 햄버거 버튼 (모바일에서만 표시) */
+    .hamburger {
+      display: none;
+      width: 40px;
+      height: 40px;
+      background: none;
+      border: 0;
+      cursor: pointer;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+    }
+    .hamburger span {
+      display: block;
+      width: 24px;
+      height: 3px;
+      background: #fff;
+      border-radius: 2px;
+      transition: transform .25s, opacity .25s;
+    }
+    .hamburger.open span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+    /* 페이지 */
+    main { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .page h1 { color: #0b7285; margin-bottom: 8px; }
+    .page > p { margin-bottom: 16px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .card { background: #fff; border-radius: 10px; padding: 18px; box-shadow: 0 1px 4px rgba(0, 0, 0, .1); }
+    .card h3 { margin-bottom: 6px; }
+    .card .emoji { font-size: 2rem; }
+
+    .demo-btns { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+    .demo-btns button { font: inherit; padding: 10px 16px; border: 0; border-radius: 8px; background: #0b7285; color: #fff; cursor: pointer; }
+    .demo-btns button:hover { background: #095c6b; }
+    .demo-btns button.active { background: #e8590c; }
+    .demo-hint { color: #666; }
+    #demo-frame { width: 100%; height: 85vh; min-height: 560px; border: 1px solid #ccc; border-radius: 10px; background: #fff; }
+    #demo-frame[hidden] { display: none; }
+
+    footer { text-align: center; color: #666; padding: 16px; font-size: .9rem; }
+
+    /* 모바일 */
+    @media (max-width: 640px) {
+      .hamburger { display: flex; }
+      nav {
+        display: none;
+        position: absolute;
+        top: 56px;
+        left: 0;
+        right: 0;
+        background: #0b7285;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, .15);
+      }
+      nav.open { display: block; }
+      nav ul { flex-direction: column; padding: 8px 16px 16px; }
+      nav a { padding: 12px 14px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <a class="logo" href="#jeju">🌴 마라도 가이드</a>
+      <button class="hamburger" id="hamburger" aria-label="메뉴 열기" aria-expanded="false" aria-controls="menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav id="menu">
+        <ul>
+          <li><a href="#jeju" data-page="jeju">마라도</a></li>
+          <li><a href="#hotel" data-page="hotel">호텔</a></li>
+          <li><a href="#food" data-page="food">음식점</a></li>
+          <li><a href="#bus" data-page="bus">버스</a></li>
+          <li><a href="#sights" data-page="sights">관광지</a></li>
+          <li><a href="#study" data-page="study">배열 학습</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page" id="jeju">
+      <h1>🌴 마라도</h1>
+      <p>반갑습니다. 이재오 님! 화산섬 제주의 바다, 오름, 돌담이 어우러진 대한민국 대표 여행지입니다.</p>
+      <div class="cards">
+        <div class="card"><div class="emoji">🌊</div><h3>푸른 바다</h3><p>협재, 함덕 등 에메랄드빛 해변</p></div>
+        <div class="card"><div class="emoji">⛰️</div><h3>한라산</h3><p>해발 1,947m, 사계절 다른 풍경</p></div>
+        <div class="card"><div class="emoji">🍊</div><h3>감귤</h3><p>겨울에 즐기는 제주 감귤 따기</p></div>
+      </div>
+    </section>
+
+    <section class="page" id="hotel">
+      <h1>🏨 호텔</h1>
+      <p>취향과 예산에 맞는 숙소를 골라보세요.</p>
+      <div class="cards">
+        <div class="card"><div class="emoji">🏖️</div><h3>오션뷰 리조트</h3><p>중문·애월 해안가 리조트</p></div>
+        <div class="card"><div class="emoji">🏙️</div><h3>시내 비즈니스 호텔</h3><p>제주시 공항 근처, 이동이 편리</p></div>
+        <div class="card"><div class="emoji">🏡</div><h3>감성 펜션·민박</h3><p>돌담집 스타일의 아늑한 숙소</p></div>
+      </div>
+    </section>
+
+    <section class="page" id="food">
+      <h1>🍽️ 음식점</h1>
+      <p>제주에서 꼭 먹어봐야 할 대표 음식입니다.</p>
+      <div class="cards">
+        <div class="card"><div class="emoji">🐖</div><h3>흑돼지</h3><p>쫄깃하고 고소한 제주 흑돼지 구이</p></div>
+        <div class="card"><div class="emoji">🐟</div><h3>갈치조림</h3><p>두툼한 제주 은갈치 요리</p></div>
+        <div class="card"><div class="emoji">🍜</div><h3>고기국수</h3><p>진한 돼지 육수의 향토 국수</p></div>
+      </div>
+    </section>
+
+    <section class="page" id="bus">
+      <h1>🚌 버스</h1>
+      <p>렌터카 없이도 버스로 편하게 이동할 수 있습니다.</p>
+      <div class="cards">
+        <div class="card"><div class="emoji">🚍</div><h3>급행 버스</h3><p>공항에서 주요 관광지를 빠르게 연결</p></div>
+        <div class="card"><div class="emoji">🚏</div><h3>간선·지선 버스</h3><p>제주시·서귀포시 구석구석 운행</p></div>
+        <div class="card"><div class="emoji">🎫</div><h3>교통카드</h3><p>충전식 카드로 환승 할인</p></div>
+      </div>
+    </section>
+
+    <section class="page" id="sights">
+      <h1>📸 관광지</h1>
+      <p>제주의 대표 명소를 소개합니다.</p>
+      <div class="cards">
+        <div class="card"><div class="emoji">🌅</div><h3>성산일출봉</h3><p>유네스코 세계자연유산, 일출 명소</p></div>
+        <div class="card"><div class="emoji">💧</div><h3>천지연폭포</h3><p>서귀포의 시원한 폭포</p></div>
+        <div class="card"><div class="emoji">🌿</div><h3>비자림</h3><p>천년 비자나무 숲 산책길</p></div>
+      </div>
+    </section>
+    <section class="page" id="study">
+      <h1>🧠 배열 학습</h1>
+      <p>버튼을 누르면 해당 애니메이션이 아래에 표시됩니다.</p>
+      <div class="demo-btns">
+        <button type="button" data-src="array-steps.html">🔢 숫자 100개 합계</button>
+        <button type="button" data-src="array-cart.html">🛒 과일 3종 장바구니</button>
+        <button type="button" data-src="array-apple.html">🍎 사과 배열 반복문</button>
+        <button type="button" data-src="array-shop.html">🏪 장바구니 50개 쇼핑</button>
+      </div>
+      <p id="demo-hint" class="demo-hint">위 버튼 중 하나를 선택하세요.</p>
+      <iframe id="demo-frame" title="배열 학습 애니메이션" hidden></iframe>
+    </section>
+  </main>
+
+  <footer>© 마라도 여행 가이드 · 이재오</footer>
+
+  <script>
+    const pages = document.querySelectorAll('.page');
+    const links = document.querySelectorAll('nav a');
+    const menu = document.getElementById('menu');
+    const hamburger = document.getElementById('hamburger');
+
+    function showPage() {
+      const id = location.hash.slice(1) || 'jeju';
+      const target = document.getElementById(id) ? id : 'jeju';
+      pages.forEach(p => p.classList.toggle('active', p.id === target));
+      links.forEach(a => a.classList.toggle('active', a.dataset.page === target));
+      closeMenu();
+      window.scrollTo(0, 0);
+    }
+
+    function closeMenu() {
+      menu.classList.remove('open');
+      hamburger.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', 'false');
+    }
+
+    hamburger.addEventListener('click', () => {
+      const open = menu.classList.toggle('open');
+      hamburger.classList.toggle('open', open);
+      hamburger.setAttribute('aria-expanded', String(open));
+    });
+
+    const demoBtns = document.querySelectorAll('.demo-btns button');
+    const demoFrame = document.getElementById('demo-frame');
+    demoBtns.forEach(btn => btn.addEventListener('click', () => {
+      demoBtns.forEach(b => b.classList.toggle('active', b === btn));
+      demoFrame.src = btn.dataset.src;
+      demoFrame.hidden = false;
+      document.getElementById('demo-hint').hidden = true;
+    }));
+
+    window.addEventListener('hashchange', showPage);
+    showPage();
+  </script>
+</body>
+</html>

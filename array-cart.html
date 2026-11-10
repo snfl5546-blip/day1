@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>장바구니로 배우는 배열</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Malgun Gothic", sans-serif; background: #fff7ed; color: #1e293b; padding: 16px; }
+    .wrap { max-width: 1000px; margin: 0 auto; }
+    h1 { font-size: 1.3rem; margin-bottom: 4px; }
+    .sub { color: #78716c; font-size: .9rem; margin-bottom: 14px; }
+    .grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 14px; }
+    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+    .panel { background: #fff; border-radius: 10px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+    .panel h2 { font-size: .95rem; color: #57534e; margin-bottom: 8px; }
+
+    .code { font-family: Consolas, monospace; font-size: .88rem; background: #1c1917; color: #e7e5e4; border-radius: 8px; padding: 8px 0; overflow-x: auto; }
+    .ln { display: flex; padding: 3px 12px; white-space: pre; border-left: 4px solid transparent; }
+    .ln .no { width: 24px; color: #78716c; flex-shrink: 0; }
+    .ln.on { background: #c2410c; border-left-color: #fde047; color: #fff; }
+    #msg { background: #fef9c3; border: 1px solid #fde047; border-radius: 8px; padding: 10px 12px; margin-top: 12px; min-height: 70px; line-height: 1.6; }
+
+    /* 배열 (진열대) */
+    .shelf { display: flex; gap: 10px; margin-bottom: 14px; }
+    .item { flex: 1; border: 3px solid #d6d3d1; border-radius: 10px; padding: 8px 6px; text-align: center; background: #fafaf9; opacity: .25; transition: all .3s; min-width: 0; }
+    .item.show { opacity: 1; }
+    .item.cur { border-color: #f97316; background: #ffedd5; transform: translateY(-6px); box-shadow: 0 4px 10px rgba(249,115,22,.4); }
+    .item.done { border-color: #16a34a; background: #dcfce7; }
+    .item .idx { font-family: Consolas, monospace; font-weight: bold; color: #c2410c; font-size: .9rem; }
+    .item .nm { font-size: 1.1rem; font-weight: bold; margin: 2px 0; }
+    .item .fruit { font-size: 1rem; line-height: 1.25; min-height: 2.5em; word-break: break-all; }
+    .item .meta { font-size: .78rem; color: #57534e; font-family: Consolas, monospace; }
+    .item .sub-total { font-size: .85rem; font-weight: bold; color: #15803d; min-height: 1.3em; }
+    .hl { background: #fde047; border-radius: 3px; padding: 0 2px; }
+
+    /* 변수 */
+    .vars { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+    .var { flex: 1; min-width: 110px; background: #f8fafc; border: 2px solid #d6d3d1; border-radius: 8px; text-align: center; padding: 8px 4px; transition: all .3s; }
+    .var .name { font-family: Consolas, monospace; font-size: .85rem; color: #78716c; }
+    .var .val { font-size: 1.3rem; font-weight: bold; font-family: Consolas, monospace; }
+    .var .val.small { font-size: .8rem; }
+    .var.flash { background: #bbf7d0; border-color: #16a34a; }
+
+    .basket { background: #fef3c7; border: 2px dashed #d97706; border-radius: 10px; padding: 10px; text-align: center; margin-bottom: 14px; }
+    .basket .t { font-size: .85rem; color: #92400e; }
+    .basket .n { font-size: 2rem; font-weight: bold; font-family: Consolas, monospace; color: #b45309; }
+
+    #out { font-family: Consolas, monospace; background: #1c1917; color: #4ade80; border-radius: 8px; padding: 10px 12px; min-height: 56px; }
+
+    .ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px; }
+    button { font: inherit; padding: 9px 14px; border: 0; border-radius: 8px; background: #ea580c; color: #fff; cursor: pointer; }
+    button:hover { background: #c2410c; }
+    button.sec { background: #78716c; }
+    button:disabled { background: #d6d3d1; cursor: not-allowed; }
+    #pos, label { font-size: .88rem; color: #57534e; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🛒 장바구니로 배우는 배열</h1>
+  <p class="sub">사과 10개(100원) · 배 5개(1,000원) · 귤 10개(10,000원)의 총 가격을 배열과 반복문으로 계산합니다. [다음 ▶]을 눌러 한 줄씩 따라가 보세요.</p>
+
+  <div class="grid">
+    <div class="panel">
+      <h2>📜 코드</h2>
+      <div class="code" id="code"></div>
+      <div id="msg"></div>
+    </div>
+
+    <div class="panel">
+      <h2>🗂️ 배열 cart (칸 번호 = 인덱스, <b>0부터</b> 시작!)</h2>
+      <div class="shelf" id="shelf"></div>
+
+      <div class="vars">
+        <div class="var" id="vItem"><div class="name">item (지금 꺼낸 것)</div><div class="val small">-</div></div>
+        <div class="var" id="vTotal"><div class="name">total (총합)</div><div class="val">-</div></div>
+      </div>
+
+      <div class="basket"><div class="t">🧺 지금까지 담긴 금액</div><div class="n" id="bn">0원</div></div>
+
+      <h2>🖥️ 출력 (console.log)</h2>
+      <div id="out"></div>
+    </div>
+  </div>
+
+  <div class="ctrl">
+    <button id="prev" class="sec">◀ 이전</button>
+    <button id="next">다음 ▶</button>
+    <button id="play">▶▶ 자동 재생</button>
+    <button id="reset" class="sec">↺ 처음부터</button>
+    <label>속도 <input type="range" id="speed" min="1" max="10" value="4"></label>
+    <span id="pos"></span>
+  </div>
+</div>
+
+<script>
+  // ===== 데이터 =====
+  const cart = [
+    { name: '사과', price: 100,   qty: 10, emoji: '🍎' },
+    { name: '배',   price: 1000,  qty: 5,  emoji: '🍐' },
+    { name: '귤',   price: 10000, qty: 10, emoji: '🍊' },
+  ];
+  const won = n => n.toLocaleString('ko-KR') + '원';
+
+  const codeLines = [
+    'const cart = [',
+    '  { name: "사과", price: 100,   qty: 10 },',
+    '  { name: "배",   price: 1000,  qty: 5  },',
+    '  { name: "귤",   price: 10000, qty: 10 },',
+    ']',
+    'console.log(cart.length)',
+    'console.log(cart[0].name)',
+    'let total = 0',
+    'for (const item of cart) {',
+    '  total += item.price * item.qty',
+    '}',
+    'console.log(total)',
+  ];
+
+  // ===== 단계 미리 계산 =====
+  const steps = [];
+  const st = { arr: false, idx: -1, done: 0, hl: '', item: null, total: null, out: [] };
+  function push(lines, msg, flash) {
+    steps.push({ lines: [].concat(lines), msg, flash: flash || '', arr: st.arr, idx: st.idx, done: st.done,
+                 hl: st.hl, item: st.item, total: st.total, out: st.out.slice() });
+  }
+
+  st.arr = true;
+  push([0, 1, 2, 3, 4], '<b>cart</b>라는 <b>배열</b>(여러 개를 줄 세운 상자)을 만듭니다. 칸마다 상품 하나(이름·가격·개수)가 들어가고, 칸 번호(<b>인덱스</b>)는 <b>0, 1, 2</b> 입니다.');
+  st.out.push('3');
+  push(5, '<b>cart.length</b> → 배열에 들어 있는 칸의 <b>개수</b>는 3개 입니다.');
+  st.idx = 0; st.hl = 'name';
+  push(6, '<b>cart[0]</b> → 0번 칸(<b>첫 번째</b>)을 열고, 그 안의 <b>.name</b>을 읽습니다.');
+  st.out.push('사과');
+  push(6, 'console.log가 <b>사과</b>를 출력합니다. 번호를 바꿔 cart[1]이면 "배", cart[2]면 "귤" 입니다.');
+  st.idx = -1; st.hl = ''; st.total = 0;
+  push(7, '합계를 담을 변수 <b>total</b>을 만들고 <b>0</b>에서 시작합니다.', 'total');
+
+  for (let k = 0; k < cart.length; k++) {
+    const c = cart[k];
+    st.idx = k; st.item = `{ ${c.name}, ${c.price}, ${c.qty} }`;
+    push(8, `반복 <b>${k + 1}번째</b>: 배열에서 <b>cart[${k}]</b>(${c.name})를 꺼내 변수 <b>item</b>에 담습니다.`, 'item');
+    const before = st.total;
+    st.total += c.price * c.qty;
+    st.done = k + 1; st.hl = '';
+    push(9, `total += item.price × item.qty → <b>${won(before)} + (${c.price.toLocaleString()} × ${c.qty}) = ${won(st.total)}</b><br>${c.name} ${c.qty}개 값(${won(c.price * c.qty)})을 total에 <b>누적</b>합니다.`, 'total');
+  }
+  st.idx = -1; st.item = null;
+  push(10, '배열의 <b>마지막 칸까지 모두 꺼냈으므로</b> 반복문을 빠져나옵니다.');
+  st.out.push(String(st.total));
+  push(11, `최종 total <b>${won(st.total)}</b> 을 출력합니다. (1,000 + 5,000 + 100,000)`);
+
+  // ===== 화면 =====
+  const $ = id => document.getElementById(id);
+  $('code').innerHTML = codeLines.map((t, n) =>
+    `<div class="ln" data-n="${n}"><span class="no">${n + 1}</span>${t.replace(/</g, '&lt;')}</div>`).join('');
+  $('shelf').innerHTML = cart.map((c, k) => `
+    <div class="item">
+      <div class="idx">cart[${k}]</div>
+      <div class="nm">${c.name}</div>
+      <div class="fruit">${c.emoji.repeat(c.qty)}</div>
+      <div class="meta">name: ${c.name}<br>price: ${c.price.toLocaleString()}<br>qty: ${c.qty}</div>
+      <div class="sub-total"></div>
+    </div>`).join('');
+  const items = document.querySelectorAll('.item');
+  const lns = document.querySelectorAll('.ln');
+
+  let shown = 0, raf = null;
+  function tween(to) {
+    clearInterval(raf);
+    const from = shown, t0 = Date.now();
+    raf = setInterval(() => {
+      const p = Math.min(1, (Date.now() - t0) / 500);
+      shown = Math.round(from + (to - from) * p);
+      $('bn').textContent = won(shown);
+      if (p >= 1) clearInterval(raf);
+    }, 30);
+  }
+
+  let pos = -1, timer = null;
+  const empty = { lines: [], msg: '아직 시작 전입니다. <b>다음 ▶</b> 버튼을 눌러 보세요!', flash: '', arr: false,
+                  idx: -1, done: 0, hl: '', item: null, total: null, out: [] };
+
+  function render() {
+    const s = pos < 0 ? empty : steps[pos];
+    lns.forEach(el => el.classList.toggle('on', s.lines.includes(+el.dataset.n)));
+    $('msg').innerHTML = s.msg;
+    items.forEach((el, k) => {
+      el.className = 'item' + (s.arr ? ' show' : '') + (k < s.done ? ' done' : '') + (k === s.idx ? ' cur' : '');
+      const c = cart[k];
+      el.querySelector('.nm').innerHTML = (k === s.idx && s.hl === 'name') ? `<span class="hl">${c.name}</span>` : c.name;
+      el.querySelector('.sub-total').textContent = k < s.done ? '소계 ' + won(c.price * c.qty) : '';
+    });
+    $('vItem').querySelector('.val').textContent = s.item === null ? '-' : s.item;
+    $('vTotal').querySelector('.val').textContent = s.total === null ? '-' : s.total.toLocaleString('ko-KR');
+    $('vItem').classList.toggle('flash', s.flash === 'item');
+    $('vTotal').classList.toggle('flash', s.flash === 'total');
+    tween(s.total === null ? 0 : s.total);
+    $('out').innerHTML = s.out.length ? s.out.map(t => '> ' + (isNaN(t) ? t : (+t).toLocaleString('ko-KR'))).join('<br>') : '&nbsp;';
+    $('pos').textContent = `${pos + 1} / ${steps.length} 단계`;
+    $('prev').disabled = pos < 0;
+    $('next').disabled = pos >= steps.length - 1;
+    if (pos >= steps.length - 1) stop();
+  }
+
+  function go(n) { pos = Math.max(-1, Math.min(steps.length - 1, n)); render(); }
+  function stop() { clearInterval(timer); timer = null; $('play').textContent = '▶▶ 자동 재생'; }
+  function play() {
+    if (timer) return stop();
+    if (pos >= steps.length - 1) pos = -1;
+    $('play').textContent = '⏸ 일시정지';
+    timer = setInterval(() => go(pos + 1), 2300 - $('speed').value * 200);
+    go(pos + 1);
+  }
+
+  $('next').onclick = () => { stop(); go(pos + 1); };
+  $('prev').onclick = () => { stop(); go(pos - 1); };
+  $('reset').onclick = () => { stop(); go(-1); };
+  $('play').onclick = play;
+  $('speed').oninput = () => { if (timer) { stop(); play(); } };
+
+  render();
+</script>
+</body>
+</html>
